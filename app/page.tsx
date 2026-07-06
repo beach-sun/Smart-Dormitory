@@ -68,3 +68,5 @@ export default function LandingPage() {
     </main>
   )
 }
+
+export const dynamic = 'force-dynamic'

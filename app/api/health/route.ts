@@ -10,10 +10,7 @@ export async function GET() {
     success: true,
     data: {
       ok: true,
-      time: new Date().toISOString(),
-      supabase: getSupabaseEnvStatus(),
-      control: getControlState(),
-      config: getConfig()
+      time: new Date().toISOString()
     }
   })
 }

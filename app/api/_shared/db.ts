@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/utils/supabase/admin'
+import { createClient } from '@supabase/supabase-js'
 
-export function db() { return getSupabaseAdmin() }
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+export function db() {
+  return createClient(url, key, {
+    auth: {
+      persistSession: false
+    }
+  })
+}
 export function apiError(error: unknown, status = 500) {
   const message = error instanceof Error ? error.message : String(error)
   return NextResponse.json({ success: false, message, data: null }, { status })
