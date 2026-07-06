@@ -77,3 +77,10 @@ export function deviceTokenValid(request: Request) {
   if (!token) return true
   return request.headers.get('x-device-token') === token
 }
+
+// Compatibility aliases for older route files.
+// Some previous project files import apiError/readJson/toSafeString/toNumber/toBoolean from the old shared helpers.
+export const apiError = apiFail
+export const toSafeString = safeString
+export const toNumber = finite
+export const toBoolean = toBool
