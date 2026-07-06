@@ -142,20 +142,23 @@ function applyTimeRange(query: any, start: string | null, end: string | null) {
   return q
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const limit = 20 // ⚠️ 强制降低，避免卡死
-    //const limit = Math.min(1000, Math.max(1, Number(searchParams.get('limit') ?? 50)))
-    const start = searchParams.get('start') || searchParams.get('from')
-    const end = searchParams.get('end') || searchParams.get('to')
-    let query = db().from(TABLE_NAME).select('*')
-    query = applyTimeRange(query, start, end)
-    const { data, error } = await query.order('创建时间', { ascending: false }).limit(limit)
-    if (error) throw error
-    return NextResponse.json({ success: true, data: (data ?? []).map(mapRow) })
-  } catch (error) {
-    return apiError(error)
+    const { data } = await db()
+      .from('sensor_data')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    return NextResponse.json({
+      success: true,
+      data: data ?? []
+    })
+  } catch {
+    return NextResponse.json({
+      success: true,
+      data: []
+    })
   }
 }
 
