@@ -1,4 +1,7 @@
 {
+  "name": "smart-dormitory-stable",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -6,23 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
-    "axios": "^1.18.0",
-    "lucide-react": "^0.468.0",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "recharts": "^2.12.7"
+    "@supabase/supabase-js": "^2.85.0",
+    "next": "16.2.4",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.1",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.1",
-    "typescript": "latest"
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
   }
 }

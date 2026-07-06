@@ -2,8 +2,8 @@ export default function StatusBadge({
   active,
   activeText,
   inactiveText,
-  danger = false,
-  warn = false
+  danger,
+  warn
 }: {
   active?: boolean
   activeText: string
@@ -11,6 +11,6 @@ export default function StatusBadge({
   danger?: boolean
   warn?: boolean
 }) {
-  const cls = active ? (danger ? 'badge danger' : warn ? 'badge warn' : 'badge good') : 'badge off'
+  const cls = active ? (danger ? 'badge danger' : warn ? 'badge warn' : 'badge ok') : 'badge off'
   return <span className={cls}>{active ? activeText : inactiveText}</span>
 }

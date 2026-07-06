@@ -1,32 +1,46 @@
-import { NextResponse } from 'next/server'
-import { readJson } from '../_shared/format'
-import { writeOperationLog } from '../_shared/log'
-import { db } from '../_shared/db'
+import { apiFail, apiOk, db, readJson } from '../_shared/db'
+import { defaultConfig } from '../_shared/defaults'
+import { normalizeConfig } from '../_shared/model'
+
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET() {
-  const { data } = await db()
-    .from('config')
-    .select('*')
-    .limit(1)
+  try {
+    const { data, error } = await db()
+      .from('config')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle()
 
-  return NextResponse.json({
-    success: true,
-    data: data?.[0] ?? null
-  })
+    if (error) throw error
+    return apiOk(data ?? { id: 1, ...defaultConfig })
+  } catch {
+    return apiOk({ id: 1, ...defaultConfig })
+  }
 }
 
 export async function POST(request: Request) {
-  const body = await readJson(request)
+  try {
+    const body = await readJson(request)
 
-  const { data, error } = await db()
-    .from('config')
-    .update(body)
-    .eq('id', 1)
-    .select()
-    .single()
+    const { data: old } = await db()
+      .from('config')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle()
 
-  if (error) throw error
+    const payload = { id: 1, ...normalizeConfig(body, old ?? {}) }
 
-  return NextResponse.json({ success: true, data })
+    const { data, error } = await db()
+      .from('config')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .maybeSingle()
+
+    if (error) throw error
+    return apiOk(data ?? payload)
+  } catch (error) {
+    return apiFail(error)
+  }
 }

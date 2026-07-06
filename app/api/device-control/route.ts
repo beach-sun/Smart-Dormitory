@@ -1,16 +1,9 @@
-import { NextResponse } from 'next/server'
-import { db } from '../_shared/db'
+import { apiFail, apiOk, db, deviceTokenValid, readJson } from '../_shared/db'
+import { defaultControl } from '../_shared/defaults'
+import { normalizeControl } from '../_shared/model'
 
 export const dynamic = 'force-dynamic'
-
-type DeviceControlBody = {
-  mode?: string
-  light?: boolean
-  fan?: boolean
-  fan_speed?: number
-  socket?: boolean
-  sleep_mode?: boolean
-}
+export const revalidate = 0
 
 export async function GET() {
   try {
@@ -20,66 +13,26 @@ export async function GET() {
       .eq('id', 1)
       .maybeSingle()
 
-    if (error) {
-      console.error('GET /api/device-control Supabase error:', error)
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          data: null,
-        },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: data ?? {
-        id: 1,
-        mode: 'auto',
-        light: false,
-        fan: false,
-        fan_speed: 0,
-        socket: false,
-        sleep_mode: false,
-      },
-    })
+    if (error) throw error
+    return apiOk(data ?? { id: 1, ...defaultControl })
   } catch (error) {
-    console.error('GET /api/device-control error:', error)
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to read device control state',
-        data: null,
-      },
-      { status: 500 }
-    )
+    return apiOk({ id: 1, ...defaultControl })
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as DeviceControlBody
+    if (!deviceTokenValid(request)) return apiFail('Invalid device token', 401)
 
-    const payload = {
-      id: 1,
-      mode: body.mode,
-      light: body.light,
-      fan: body.fan,
-      fan_speed: body.fan_speed,
-      socket: body.socket,
-      sleep_mode: body.sleep_mode,
-      updated_at: new Date().toISOString(),
-    }
+    const body = await readJson(request)
 
-    Object.keys(payload).forEach((key) => {
-      const typedKey = key as keyof typeof payload
-      if (payload[typedKey] === undefined) {
-        delete payload[typedKey]
-      }
-    })
+    const { data: old } = await db()
+      .from('device_control')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle()
+
+    const payload = { id: 1, ...normalizeControl(body, old ?? {}) }
 
     const { data, error } = await db()
       .from('device_control')
@@ -87,33 +40,9 @@ export async function POST(request: Request) {
       .select('*')
       .maybeSingle()
 
-    if (error) {
-      console.error('POST /api/device-control Supabase error:', error)
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-          data: null,
-        },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data,
-    })
+    if (error) throw error
+    return apiOk(data ?? payload)
   } catch (error) {
-    console.error('POST /api/device-control error:', error)
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to update device control state',
-        data: null,
-      },
-      { status: 500 }
-    )
+    return apiFail(error)
   }
 }

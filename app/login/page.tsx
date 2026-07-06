@@ -21,58 +21,50 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    })
-    if (res.ok) {
-      router.replace(from)
-    } else {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ username, password })
+      })
       const payload = await res.json().catch(() => ({ message: '登录失败' }))
-      setError(payload.message || '登录失败')
+      if (!res.ok || !payload.success) throw new Error(payload.message || '登录失败')
+      router.replace(from)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '登录失败')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
     <main className="auth-page page-shell">
       <div className="auth-card">
         <section className="auth-visual">
-          <div className="kicker" style={{ background: 'rgba(255,255,255,.12)', color: '#dbeafe', borderColor: 'rgba(255,255,255,.2)' }}>Smart Dorm Secure Console</div>
+          <div className="kicker" style={{ background: 'rgba(255,255,255,.12)', color: '#dbeafe' }}>Smart Dorm Secure Console</div>
           <h1>智寝云控中心</h1>
-          <p style={{ color: '#cbd5e1', lineHeight: 1.8 }}>统一查看环境、用电、报警、安防出入与执行器状态。点亮 AI，让宿舍更懂安全与节能。</p>
-          <div className="preview-grid" style={{ marginTop: 32 }}>
-            <div className="preview-metric"><span>AI 安防</span><strong>识别</strong></div>
-            <div className="preview-metric"><span>能耗曲线</span><strong>分析</strong></div>
-          </div>
+          <p style={{ color: '#dbeafe', lineHeight: 1.8 }}>默认管理员账号来自环境变量。也可以注册数据库账号。</p>
         </section>
-
         <form className="auth-form" onSubmit={submit}>
           <div className="brand">
             <span className="brand-mark">智</span>
             <div>
               <div>登录系统</div>
-              <div className="muted" style={{ fontSize: 13 }}>支持默认管理员账号，也支持数据库注册账号。</div>
+              <div className="muted">默认账号：admin，默认密码：123456。上线后请在 Vercel 环境变量中修改。</div>
             </div>
           </div>
-
           <label className="field">
             <span>账号</span>
-            <input className="input" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" />
+            <input className="input" value={username} onChange={e => setUsername(e.target.value)} />
           </label>
-
           <label className="field">
             <span>密码</span>
-            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" placeholder="请输入密码" />
+            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="请输入密码" />
           </label>
-
           {error ? <div className="error-box">{error}</div> : null}
-
-          <button className="btn btn-primary" style={{ width: '100%', marginTop: 22 }} disabled={loading}>
-            {loading ? '登录中...' : '进入控制台'}
-          </button>
-          <p className="muted" style={{ textAlign: 'center', marginTop: 18 }}>还没有账号？<Link className="text-link" href="/register">立即注册</Link></p>
+          <button className="btn btn-primary" disabled={loading}>{loading ? '登录中...' : '进入控制台'}</button>
+          <p className="muted" style={{ textAlign: 'center' }}>还没有账号？<Link href="/register">立即注册</Link></p>
         </form>
       </div>
     </main>

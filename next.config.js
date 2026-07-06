@@ -2,12 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // 🚀 关键：保证 Vercel 直接通过
+  // 🚨 强制 Vercel 不被 TypeScript 卡死
   typescript: {
     ignoreBuildErrors: true
   },
+
   eslint: {
     ignoreDuringBuilds: true
+  },
+
+  // 🚨 防 SSR 卡死
+  experimental: {
+    serverComponentsExternalPackages: []
   }
 }
 

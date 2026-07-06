@@ -1,16 +1,15 @@
-import { NextResponse } from 'next/server'
-import { getSupabaseEnvStatus } from '@/utils/supabase/admin'
-import { getConfig } from '../config/state'
-import { getControlState } from '../device-control/state'
+import { apiOk } from '../_shared/db'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  return NextResponse.json({
-    success: true,
-    data: {
-      ok: true,
-      time: new Date().toISOString()
+  return apiOk({
+    ok: true,
+    time: new Date().toISOString(),
+    env: {
+      supabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+      serviceRole: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      deviceTokenEnabled: Boolean(process.env.DEVICE_API_TOKEN)
     }
   })
 }

@@ -1,84 +1,47 @@
-import { NextResponse } from 'next/server'
-import { db } from '../_shared/db'
+import { apiOk, db, deviceTokenValid, apiFail } from '../_shared/db'
+import { defaultConfig, defaultControl } from '../_shared/defaults'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-// ================= GET =================
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { data, error } = await db()
-      .from('device_control')
-      .select('*')
-      .eq('id', 1)
-      .maybeSingle()
+    if (!deviceTokenValid(request)) return apiFail('Invalid device token', 401)
 
-    if (error) {
-      return NextResponse.json({
-        success: false,
-        message: error.message,
-        data: null
-      })
-    }
+    const [controlRes, configRes] = await Promise.all([
+      db().from('device_control').select('*').eq('id', 1).maybeSingle(),
+      db().from('config').select('*').eq('id', 1).maybeSingle()
+    ])
 
-    return NextResponse.json({
-      success: true,
-      data: data ?? {
-        id: 1,
-        mode: 'auto',
-        light: false,
-        fan: false,
-        fan_speed: 0,
-        socket: false,
-        sleep_mode: false
+    const control = controlRes.data ?? { id: 1, ...defaultControl }
+    const config = configRes.data ?? { id: 1, ...defaultConfig }
+
+    return apiOk({
+      control: {
+        mode: control.mode ?? 'auto',
+        light: Boolean(control.light),
+        fan: Boolean(control.fan),
+        fan_speed: Number(control.fan_speed ?? 0),
+        socket: Boolean(control.socket),
+        sleep_mode: Boolean(control.sleep_mode)
+      },
+      config: {
+        mq2Threshold: Number(config.mq2Threshold ?? defaultConfig.mq2Threshold),
+        co2Threshold: Number(config.co2Threshold ?? defaultConfig.co2Threshold),
+        powerThreshold: Number(config.powerThreshold ?? defaultConfig.powerThreshold),
+        minTemperature: Number(config.minTemperature ?? defaultConfig.minTemperature),
+        maxTemperature: Number(config.maxTemperature ?? defaultConfig.maxTemperature),
+        fanOnTemperature: Number(config.fanOnTemperature ?? defaultConfig.fanOnTemperature),
+        fanOffTemperature: Number(config.fanOffTemperature ?? defaultConfig.fanOffTemperature),
+        lightThreshold: Number(config.lightThreshold ?? defaultConfig.lightThreshold),
+        shortAwaySeconds: Number(config.shortAwaySeconds ?? defaultConfig.shortAwaySeconds),
+        longAwaySeconds: Number(config.longAwaySeconds ?? defaultConfig.longAwaySeconds)
       }
     })
-  } catch (e) {
-    return NextResponse.json({
-      success: false,
-      data: null
-    })
-  }
-}
-
-// ================= POST =================
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-
-    const payload = {
-      id: 1,
-      mode: body.mode ?? 'auto',
-      light: body.light ?? false,
-      fan: body.fan ?? false,
-      fan_speed: body.fan_speed ?? 0,
-      socket: body.socket ?? false,
-      sleep_mode: body.sleep_mode ?? false,
-      updated_at: new Date().toISOString()
-    }
-
-    const { data, error } = await db()
-      .from('device_control')
-      .upsert(payload, { onConflict: 'id' })
-      .select('*')
-      .maybeSingle()
-
-    if (error) {
-      return NextResponse.json({
-        success: false,
-        message: error.message,
-        data: null
-      })
-    }
-
-    return NextResponse.json({
-      success: true,
-      data
-    })
-  } catch (e) {
-    return NextResponse.json({
-      success: false,
-      message: 'server error',
-      data: null
+  } catch {
+    return apiOk({
+      control: defaultControl,
+      config: defaultConfig
     })
   }
 }
