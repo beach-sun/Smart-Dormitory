@@ -1,13 +1,9 @@
 import { clamp, toBoolean, toInt, toSafeString } from '../_shared/format'
 
 export type ControlState = {
-  mode: 'auto' | 'manual'
   light: boolean
   fan: boolean
-  fan_speed: number
   socket: boolean
-  sleep_mode: boolean
-  updated_at: string
 }
 
 const g = globalThis as unknown as { smartDormControlState?: ControlState }

@@ -145,7 +145,8 @@ function applyTimeRange(query: any, start: string | null, end: string | null) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = Math.min(1000, Math.max(1, Number(searchParams.get('limit') ?? 50)))
+    const limit = 20 // ⚠️ 强制降低，避免卡死
+    //const limit = Math.min(1000, Math.max(1, Number(searchParams.get('limit') ?? 50)))
     const start = searchParams.get('start') || searchParams.get('from')
     const end = searchParams.get('end') || searchParams.get('to')
     let query = db().from(TABLE_NAME).select('*')
@@ -170,3 +171,5 @@ export async function POST(request: Request) {
     return apiError(error)
   }
 }
+
+
